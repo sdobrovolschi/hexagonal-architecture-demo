@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: Stanislav Dobrovolschi
+      changes:
+        - sql:
+            sql: >
+              CREATE TABLE project(
+                id UUID NOT NULL,
+                name VARCHAR(20) NOT NULL,
+                CONSTRAINT pk_project_id PRIMARY KEY (id),
+                CONSTRAINT uq_project_name UNIQUE (name)
+              );
