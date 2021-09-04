@@ -13,4 +13,5 @@ public class ServiceProperties extends CommonContainerProperties {
     private String dockerImage;
     private Integer port = 8080;
     private Integer managementPort = 8081;
+    private String healthPath = "/status";
 }

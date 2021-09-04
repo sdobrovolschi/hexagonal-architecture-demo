@@ -1,0 +1,251 @@
+{
+  "consumer": {
+    "name": "consumer-service"
+  },
+  "interactions": [
+    {
+      "description": "a request to create a project",
+      "providerStates": [
+        {
+          "name": "no project named Test Project"
+        }
+      ],
+      "request": {
+        "body": {
+          "name": "Test Project 1"
+        },
+        "generators": {
+          "body": {
+            "$.name": {
+              "dataType": "STRING",
+              "expression": "${name}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "method": "POST",
+        "path": "/projects"
+      },
+      "response": {
+        "generators": {
+          "header": {
+            "Location": {
+              "dataType": "STRING",
+              "expression": "http://localhost:${port}/projects/${projectId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Location": "http://localhost:8080/projects/4beb44f1-53f7-4281-a78b-12c06d682067"
+        },
+        "status": 201
+      }
+    },
+    {
+      "description": "a request to get all projects",
+      "providerStates": [
+        {
+          "name": "a collection of projects"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/projects"
+      },
+      "response": {
+        "body": [
+          {
+            "projectId": "4bc5b94e-8b03-4bb4-9a56-c1adc2cb8ffe",
+            "name": "Test Project 1"
+          },
+          {
+            "projectId": "b1537bc9-fa1f-4bd9-808e-82a393d0b030",
+            "name": "Test Project 2"
+          }
+        ],
+        "generators": {
+          "body": {
+            "$[0].projectId": {
+              "dataType": "STRING",
+              "expression": "${projectId1}",
+              "type": "ProviderState"
+            },
+            "$[0].name": {
+              "dataType": "STRING",
+              "expression": "${name1}",
+              "type": "ProviderState"
+            },
+            "$[1].projectId": {
+              "dataType": "STRING",
+              "expression": "${projectId2}",
+              "type": "ProviderState"
+            },
+            "$[1].name": {
+              "dataType": "STRING",
+              "expression": "${name2}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$[0].projectId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[0].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[1].projectId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$[1].name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to get a project",
+      "providerStates": [
+        {
+          "name": "a project"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/projects/${projectId}",
+            "type": "ProviderState"
+          }
+        },
+        "headers": {
+          "Accept": "application/json"
+        },
+        "method": "GET",
+        "path": "/projects/4bc5b94e-8b03-4bb4-9a56-c1adc2cb8ffe"
+      },
+      "response": {
+        "body": {
+          "projectId": "4bc5b94e-8b03-4bb4-9a56-c1adc2cb8ffe",
+          "name": "Test Project"
+        },
+        "generators": {
+          "body": {
+            "$.name": {
+              "dataType": "STRING",
+              "expression": "${name}",
+              "type": "ProviderState"
+            },
+            "$.projectId": {
+              "dataType": "STRING",
+              "expression": "${projectId}",
+              "type": "ProviderState"
+            }
+          }
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "matchingRules": {
+          "body": {
+            "$.projectId": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            },
+            "$.name": {
+              "combine": "AND",
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ]
+            }
+          }
+        },
+        "status": 200
+      }
+    },
+    {
+      "description": "a request to delete a project",
+      "providerStates": [
+        {
+          "name": "a project"
+        }
+      ],
+      "request": {
+        "generators": {
+          "path": {
+            "dataType": "STRING",
+            "expression": "/projects/${projectId}",
+            "type": "ProviderState"
+          }
+        },
+        "method": "DELETE",
+        "path": "/projects/4bc5b94e-8b03-4bb4-9a56-c1adc2cb8ffe"
+      },
+      "response": {
+        "status": 204
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.2.10"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "provider-service"
+  }
+}

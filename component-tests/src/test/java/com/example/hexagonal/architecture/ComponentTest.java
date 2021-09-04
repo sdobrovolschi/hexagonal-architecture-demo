@@ -17,9 +17,8 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
-@SpringBootTest(webEnvironment = NONE)
+@SpringBootTest(webEnvironment = NONE, args = "build.image=true")
 @TestPropertySource("classpath:/component-tests.properties")
-//@TestExecutionListeners(value = ImageBuilderTestExecutionListener.class, mergeMode = MERGE_WITH_DEFAULTS)
 @Tag("component")
 public @interface ComponentTest {
 }

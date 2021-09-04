@@ -2,12 +2,16 @@ package com.example.hexagonal.architecture;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.actuate.metrics.MetricsEndpoint.AvailableTag;
+import org.springframework.boot.actuate.metrics.MetricsEndpoint.MetricResponse;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 
-import java.util.function.Predicate;
+import java.util.Set;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpStatus.OK;
 
@@ -17,37 +21,31 @@ class MetricsTest {
     @Autowired
     TestRestTemplate restTemplate;
 
-//    @LocalManagementPort
+    @Value("${embedded.service.host}")
+    String host;
+
+    @Value("${embedded.service.management.port}")
     int managementPort;
 
     @Test
     void httpServerRequestsExposure() {
-        restTemplate.getForObject("/test-resource", String.class);
+        restTemplate.getForObject("/projects", String.class);
 
-        Predicate<String> counter = metric("http_server_requests_seconds_count")
-                .and(tag("method", GET.name()))
-                .and(tag("uri", "/test-resource"))
-                .and(tag("status", String.valueOf(OK.value())));
+        var metrics = metrics("http.server.requests");
 
-        Predicate<String> histogram = metric("http_server_requests_seconds_bucket")
-                .and(tag("method", GET.name()))
-                .and(tag("uri", "/test-resource"))
-                .and(tag("status", String.valueOf(OK.value())));
-
-        assertThat(metrics().lines())
-                .anyMatch(counter)
-                .anyMatch(histogram);
+        assertThat(metrics)
+                .extracting(MetricResponse::getAvailableTags)
+                .asInstanceOf(list(AvailableTag.class))
+                .extracting(AvailableTag::getTag, AvailableTag::getValues)
+                .contains(
+                        tuple("method", Set.of(GET.name())),
+                        tuple("uri", Set.of("/projects")),
+                        tuple("status", Set.of(String.valueOf(OK.value())))
+                );
     }
 
-    String metrics() {
-        return restTemplate.getForObject("http://localhost:{port}/metrics", String.class, managementPort);
-    }
-
-    Predicate<String> metric(String metricName) {
-        return metric -> metric.contains(metricName);
-    }
-
-    Predicate<String> tag(String name, String value) {
-        return metric -> metric.contains(format("%s=\"%s", name, value));
+    MetricResponse metrics(String metricName) {
+        return restTemplate.getForObject("http://{host}:{port}/metrics/{metricName}", MetricResponse.class,
+                host, managementPort, metricName);
     }
 }

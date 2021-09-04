@@ -37,7 +37,7 @@ class ProjectComponentTest {
                 .contentType(APPLICATION_JSON)
                 .body(new CreateProject("Test Project"));
 
-        var response = restTemplate.getRestTemplate().exchange(request, Void.class);
+        var response = restTemplate.exchange(request, Void.class);
 
         assertThat(response.getStatusCode())
                 .as("check HTTP status")

@@ -1,6 +1,8 @@
 package com.example.testcontainers;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -9,8 +11,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.testcontainers.containers.Container;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.wait.strategy.Wait;
 
 import java.util.Map;
@@ -29,20 +31,19 @@ import static java.util.Map.entry;
 @EnableConfigurationProperties(ServiceProperties.class)
 public class EmbeddedServiceBootstrapConfiguration {
 
-    public EmbeddedServiceBootstrapConfiguration() {
-        System.out.println("");
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger("Docker-Container");
 
     @Bean
-    public Container service(ConfigurableEnvironment environment, ServiceProperties properties) {
+    public ServiceContainer service(ConfigurableEnvironment environment, ServiceProperties properties) {
 
-        GenericContainer service = new GenericContainer<>(properties.getDockerImage())
+        var service = new ServiceContainer(properties.getDockerImage())
                 .withExposedPorts(properties.getPort(), properties.getManagementPort())
-                .waitingFor(Wait.forHttp("/status")
+                .withLogConsumer(new Slf4jLogConsumer(LOGGER).withPrefix(properties.getDockerImage()))
+                .waitingFor(Wait.forHttp(properties.getHealthPath())
                         .forPort(properties.getManagementPort())
                         .forStatusCode(200));
 
-        service = configureCommonsAndStart(service, properties, log);
+        service = (ServiceContainer) configureCommonsAndStart(service, properties, log);
 
         registerServiceEnvironment(service, environment, properties);
 
@@ -50,7 +51,7 @@ public class EmbeddedServiceBootstrapConfiguration {
     }
 
     private void registerServiceEnvironment(
-            GenericContainer service,
+            ServiceContainer service,
             ConfigurableEnvironment environment,
             ServiceProperties properties) {
 
@@ -69,5 +70,12 @@ public class EmbeddedServiceBootstrapConfiguration {
 
         var propertySource = new MapPropertySource("embeddedServiceInfo", params);
         environment.getPropertySources().addFirst(propertySource);
+    }
+
+    private static class ServiceContainer extends GenericContainer<ServiceContainer> {
+
+        public ServiceContainer(String dockerImageName) {
+            super(dockerImageName);
+        }
     }
 }

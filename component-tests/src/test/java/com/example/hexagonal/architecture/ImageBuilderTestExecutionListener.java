@@ -9,17 +9,20 @@ import org.springframework.boot.ConfigurableBootstrapContext;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.SpringApplicationRunListener;
 import org.springframework.core.annotation.Order;
-import org.springframework.test.context.TestContext;
 
 import java.io.File;
+import java.util.Arrays;
 
 import static java.util.Collections.singletonList;
 import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 
 @Order(HIGHEST_PRECEDENCE)
-public class ImageBuilderTestExecutionListener implements SpringApplicationRunListener  /*TestExecutionListener*/ {
+public class ImageBuilderTestExecutionListener implements SpringApplicationRunListener {
+
+    private final boolean buildImage;
 
     public ImageBuilderTestExecutionListener(SpringApplication application, String[] args) {
+        buildImage = Arrays.asList(args).contains("build.image=true");
     }
 
     @SneakyThrows
@@ -28,30 +31,22 @@ public class ImageBuilderTestExecutionListener implements SpringApplicationRunLi
         //        https://www.jetbrains.com/help/idea/maven-support.html#maven2_install
 
 //        https://youtrack.jetbrains.com/issue/IDEA-258757
-
-        InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File("../pom.xml"));
-        request.setGoals(singletonList("clean package -DskipTests=true"));
-
-        Invoker invoker = new DefaultInvoker();
-        invoker.execute(request);
-    }
-
-    //    @Override
-    public void beforeTestClass(TestContext testContext) throws Exception {
-        if (testContext.getAttribute("IMAGE_CREATED") == null) {
-            //        https://www.jetbrains.com/help/idea/maven-support.html#maven2_install
-
-//        https://youtrack.jetbrains.com/issue/IDEA-258757
+        if (buildImage) {
+            Invoker invoker = new DefaultInvoker();
 
             InvocationRequest request = new DefaultInvocationRequest();
             request.setPomFile(new File("../pom.xml"));
             request.setGoals(singletonList("clean package -DskipTests=true"));
 
-            Invoker invoker = new DefaultInvoker();
-            invoker.execute(request);
+            var result = invoker.execute(request);
 
-            testContext.setAttribute("IMAGE_CREATED", true);
+            if (result.getExitCode() != 0) {
+                if (result.getExecutionException() != null) {
+                    throw new IllegalStateException("Build failed. Exist code: " + result.getExitCode(), result.getExecutionException());
+                } else {
+                    throw new IllegalStateException("Build failed. Exist code: " + result.getExitCode());
+                }
+            }
         }
     }
 }
