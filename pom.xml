@@ -23,17 +23,21 @@
         <module>adapters/persistence</module>
         <module>adapters/rest</module>
         <module>service</module>
+        <module>component-tests</module>
     </modules>
 
     <properties>
         <java.version>15</java.version>
         <sha1>00000000</sha1>
+        <jib-maven-plugin.version>3.1.3</jib-maven-plugin.version>
+        <maven-invoker.version>3.1.0</maven-invoker.version>
         <pact.version>4.2.4</pact.version>
-<!--        https://github.com/database-rider/database-rider/issues/183-->
-<!--        https://github.com/database-rider/database-rider/issues/262-->
+        <!--        https://github.com/database-rider/database-rider/issues/183-->
+        <!--        https://github.com/database-rider/database-rider/issues/262-->
         <rider.version>1.26.0</rider.version>
         <spring-cloud.version>2020.0.1</spring-cloud.version>
-        <testcontainers-spring-boot.version>2.0.11</testcontainers-spring-boot.version>
+        <!--        <testcontainers-spring-boot.version>2.0.11</testcontainers-spring-boot.version>-->
+        <testcontainers-spring-boot.version>2.0.3.1</testcontainers-spring-boot.version>
     </properties>
 
     <dependencies>
@@ -79,6 +83,12 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
+                <groupId>org.apache.maven.shared</groupId>
+                <artifactId>maven-invoker</artifactId>
+                <version>${maven-invoker.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
                 <groupId>com.github.database-rider</groupId>
                 <artifactId>rider-spring</artifactId>
                 <version>${rider.version}</version>
@@ -108,10 +118,15 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
         </plugins>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.google.cloud.tools</groupId>
+                    <artifactId>jib-maven-plugin</artifactId>
+                    <version>${jib-maven-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
     </build>
 </project>
